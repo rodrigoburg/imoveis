@@ -227,34 +227,64 @@ def acha_indices(headers):
     return saida
 
 def acha_coordenadas_bairros():
-    with open("dados_imoveis/dados_bairro.json","r") as jsonfile:
+    with open("dados_imoveis/dados_filtrados.json","r") as jsonfile:
         dados = json.load(jsonfile)
 
-    for uf in dados:
-        print("Estamos na UF: "+uf)
-        for capital in dados[uf]:
-            for i,bairro in enumerate(dados[uf][capital]["bairro"]):
-                try:
-                    bairro_nome = bairro["Texto"]
+    Capital = {}
+    Capital["acre"] = "rio branco"
+    Capital["alagoas"] = "maceio"
+    Capital["amapa"] = "macapa"
+    Capital["amazonas"] = "manaus"
+    Capital["bahia"] = "salvador"
+    Capital["ceara"] = "fortaleza"
+    Capital["distrito federal"] = "brasilia"
+    Capital["espirito santo"] = "vitoria"
+    Capital["goias"] = "goiania"
+    Capital["internacional"] = "miami"
+    Capital["maranhao"] = "sao luis"
+    Capital["mato grosso"] = "cuiaba"
+    Capital["mato grosso do sul"] = "campo grande"
+    Capital["minas gerais"] = "belo horizonte"
+    Capital["para"] = "belem"
+    Capital["paraiba"] = "joao pessoa"
+    Capital["parana"] = "curitiba"
+    Capital["pernambuco"] = "recife"
+    Capital["piaui"] = "teresina"
+    Capital["rio de janeiro"] = "rio de janeiro"
+    Capital["rio grande do norte"] = "natal"
+    Capital["rio grande do sul"] = "porto alegre"
+    Capital["rondonia"] = "porto velho"
+    Capital["roraima"] = "boa vista"
+    Capital["santa catarina"] = "florianopolis"
+    Capital["sao paulo"] = "sao paulo"
+    Capital["sergipe"] = "aracaju"
+    Capital["tocantins"] = "palmas"
 
-                except KeyError:
-                    pass
-                if bairro_nome.lower() not in ["indeterminado","indiferente"]:
-                    while True:
-                        time.sleep(1)
-                        try:
-                            results = Geocoder.geocode(bairro_nome+", "+capital+", "+uf)
-                            break
-                        except (ConnectionResetError, TimeoutError, OSError):
-                            print("Ops! Erro tentando pegar geolocalização. Tentando de novo...")
-                            pass
+    estados = dict((v,k) for k,v in Capital.items())
 
-                    coordenadas = results[0].coordinates
-                    dados[uf][capital]["bairro"][i]["coordenadas"] = coordenadas
-                    print(dados[uf][capital]["bairro"][i])
 
-    with open("dados_imoveis/dados_bairro_com_geo.json","w") as outfile:
-        json.dump(dados, outfile,ensure_ascii=False)
+    for capital in dados:
+        print("Estamos em: "+capital)
+        uf = estados[capital]
+
+        for bairro in dados[capital]:
+            if bairro.lower() not in ["indeterminado","indiferente"] and "coordenadas" not in dados[capital][bairro]:
+                while True:
+                    time.sleep(1)
+                    try:
+                        results = Geocoder.geocode(bairro+", "+capital+", "+uf)
+                        print("Bairro com sucesso: "+bairro)
+                        break
+                    except:
+                    #except (ConnectionResetError, TimeoutError, OSError):
+                        print("Ops! Erro tentando pegar geolocalização. Tentando de novo...")
+                        pass
+
+                coordenadas = results[0].coordinates
+                dados[capital][bairro]["coordenadas"] = coordenadas
+
+        with open("dados_imoveis/dados_bairro_com_geo.json","w") as outfile:
+            json.dump(dados, outfile,ensure_ascii=False)
 
 
 def filtra_bairros():
@@ -311,5 +341,5 @@ def acha_media_lista_dict(lista,key):
 
 #main_scraper()
 #faz_consulta()
-#acha_coordenadas_bairros()
-filtra_bairros()
+acha_coordenadas_bairros()
+#filtra_bairros()
